@@ -34,7 +34,7 @@ export default function ProductList() {
     <div>
       <h1 className="pageTitle">Product listings</h1>
       <p className="pageSubtitle">
-        Search by keyword, filter by category and price range. All prices are in
+        Search by keyword, filter by price range and category. All prices are in
         Pakistani rupees (PKR).
       </p>
 

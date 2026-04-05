@@ -54,7 +54,7 @@ export default function ProductDetail() {
                 <p className="success">This is your listing.</p>
               ) : (
                 <button type="button" className="btn btnPrimary" disabled>
-                  Message seller (coming in Phase 2)
+                  Message seller (coming soon in Phase 2)
                 </button>
               )}
             </div>

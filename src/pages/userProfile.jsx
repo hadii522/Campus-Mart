@@ -50,7 +50,7 @@ export default function UserProfile() {
                 <td>{profile.email}</td>
               </tr>
               <tr>
-                <th>Phone</th>
+                <th>Phone no.</th>
                 <td>{profile.phone}</td>
               </tr>
               <tr>

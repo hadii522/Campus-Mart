@@ -85,7 +85,7 @@ export default function MyProducts() {
     <div>
       <h1 className="pageTitle">My listings</h1>
       <p className="pageSubtitle">
-        Add, edit, or remove listings. Prices are in PKR. Optional image URL;
+        Edit, add, or remove listings. Prices are in PKR. Optional image URL;
         if you skip it, we pick a stock photo for your category.
       </p>
 

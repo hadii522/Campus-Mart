@@ -47,7 +47,7 @@ export default function Register() {
       <p className="pageSubtitle">
         FAST University Lahore (NUCES) only: your email must end with{' '}
         <code>@lhr.nu.edu.pk</code>. Phase 1 checks this in the browser only;
-        later phases can verify with the backend.
+        later in phase 2 it can verify with the backend.
       </p>
 
       <form className="card" onSubmit={handleSubmit}>

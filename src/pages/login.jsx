@@ -37,7 +37,7 @@ export default function Login() {
     <div className="narrow">
       <h1 className="pageTitle">Log in</h1>
       <p className="pageSubtitle">
-        Use your <code>@lhr.nu.edu.pk</code> email. Demo:{' '}
+        Use your fast <code>@lhr.nu.edu.pk</code> email. Demo:{' '}
         <code>demo.student@lhr.nu.edu.pk</code> / <code>demo123</code>
       </p>
 

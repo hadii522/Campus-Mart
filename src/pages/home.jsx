@@ -8,7 +8,7 @@ export default function Home() {
         <div className="hero card heroCard">
           <div className="cardInner heroInner">
             <p className="eyebrow">FAST Lahore · @lhr.nu.edu.pk</p>
-            <h1 className="heroTitle">Buy and sell on CampusMart</h1>
+            <h1 className="heroTitle">Buy, sell and discover deals on CampusMart</h1>
             <p className="pageSubtitle heroLead">
               Books, notes, gadgets, and hostel essentials — for FAST Lahore
               students only. Prices in PKR; listings use sample data until the

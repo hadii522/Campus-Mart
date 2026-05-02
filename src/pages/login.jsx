@@ -6,7 +6,9 @@ import {
   clearAuthError,
   selectAuthError,
   selectUserProfile,
+  selectAuthLoading,
 } from '../store/usersSlice'
+import { fetchProducts } from '../store/itemsSlice'
 
 export default function Login() {
   const dispatch = useDispatch()
@@ -14,6 +16,7 @@ export default function Login() {
   const location = useLocation()
   const authError = useSelector(selectAuthError)
   const profile = useSelector(selectUserProfile)
+  const authLoading = useSelector(selectAuthLoading)
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -28,9 +31,14 @@ export default function Login() {
     if (profile) navigate(from, { replace: true })
   }, [profile, navigate, from])
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    dispatch(loginUser({ email, password }))
+    try {
+      await dispatch(loginUser({ email, password })).unwrap()
+      dispatch(fetchProducts({}))
+    } catch {
+      /* slice sets authError */
+    }
   }
 
   return (
@@ -72,8 +80,12 @@ export default function Login() {
           />
 
           <div className="row" style={{ marginTop: 14 }}>
-            <button className="btn btnPrimary" type="submit">
-              Log in
+            <button
+              className="btn btnPrimary"
+              type="submit"
+              disabled={authLoading}
+            >
+              {authLoading ? 'Please wait…' : 'Log in'}
             </button>
             <Link className="btn" to="/register">
               Need an account?

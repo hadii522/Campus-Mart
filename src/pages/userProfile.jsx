@@ -1,7 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { logoutUser, selectUserProfile, deleteCurrentUser } from '../store/usersSlice'
-import { removeItemsBySeller } from '../store/itemsSlice'
+import {
+  logoutUser,
+  selectUserProfile,
+  deleteCurrentUser,
+} from '../store/usersSlice'
+import { fetchProducts } from '../store/itemsSlice'
 import { formatDateTime } from '../utils/format.js'
 
 export default function UserProfile() {
@@ -14,10 +18,10 @@ export default function UserProfile() {
     navigate('/', { replace: true })
   }
 
-  function handleDeleteAccount() {
+  async function handleDeleteAccount() {
     if (!profile) return
     const line1 =
-      'Delete your CampusMart account and every listing you posted on this device? This only affects data stored in your browser (Phase 1).'
+      'Delete your CampusMart account and every listing you posted? Your data will be removed from the database (MongoDB).'
     if (!window.confirm(line1)) return
     if (
       !window.confirm(
@@ -25,9 +29,13 @@ export default function UserProfile() {
       )
     )
       return
-    dispatch(removeItemsBySeller(profile.id))
-    dispatch(deleteCurrentUser())
-    navigate('/', { replace: true })
+    try {
+      await dispatch(deleteCurrentUser()).unwrap()
+      await dispatch(fetchProducts({})).unwrap()
+      navigate('/', { replace: true })
+    } catch (e) {
+      window.alert(e?.message || 'Could not delete account')
+    }
   }
 
   if (!profile) return null
@@ -35,7 +43,9 @@ export default function UserProfile() {
   return (
     <div className="narrow">
       <h1 className="pageTitle">Profile</h1>
-      <p className="pageSubtitle">Your CampusMart account details (local only).</p>
+      <p className="pageSubtitle">
+        Your CampusMart account (stored on the server — JWT in this browser).
+      </p>
 
       <div className="card">
         <div className="cardInner">
@@ -57,6 +67,12 @@ export default function UserProfile() {
                 <th>Department</th>
                 <td>{profile.department}</td>
               </tr>
+              {profile.role === 'admin' ? (
+                <tr>
+                  <th>Role</th>
+                  <td>Administrator</td>
+                </tr>
+              ) : null}
               <tr>
                 <th>Member since</th>
                 <td>{formatDateTime(profile.createdAt)}</td>
@@ -76,8 +92,9 @@ export default function UserProfile() {
           <div className="dangerZone">
             <h2 className="dangerZoneTitle">Delete account</h2>
             <p className="dangerZoneText">
-              Permanently remove your profile and all listings stored locally in
-              this browser. You can register again anytime with the same email.
+              Permanently remove your profile and all your listings from the
+              database. You can register again with the same email if it is still
+              available.
             </p>
             <button
               type="button"

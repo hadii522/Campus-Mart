@@ -1,4 +1,5 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { api, setToken, getToken } from '../api/client.js'
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase()
@@ -11,37 +12,75 @@ export function isUniversityEmail(email) {
   return e.endsWith('@lhr.nu.edu.pk')
 }
 
-function pickProfile(u) {
+function mapUser(u) {
   if (!u) return null
   return {
     id: u.id,
     name: u.name,
     email: u.email,
-    phone: u.phone,
-    department: u.department,
+    phone: u.phone || '',
+    department: u.department || '',
+    role: u.role || 'user',
     createdAt: u.createdAt,
   }
 }
 
-export const DEMO_USER_ID = 'user_demo'
-const demoId = DEMO_USER_ID
-const demoCreated = new Date('2025-01-15').toISOString()
+export const loadMe = createAsyncThunk('user/loadMe', async (_, { rejectWithValue }) => {
+  try {
+    if (!getToken()) return null
+    return await api('/auth/me')
+  } catch (e) {
+    return rejectWithValue(e.message)
+  }
+})
+
+export const loginUser = createAsyncThunk(
+  'user/login',
+  async ({ email, password }, { rejectWithValue }) => {
+    try {
+      const data = await api('/auth/login', {
+        method: 'POST',
+        body: { email, password },
+      })
+      setToken(data.token)
+      return mapUser(data.user)
+    } catch (e) {
+      return rejectWithValue(e.message)
+    }
+  }
+)
+
+export const registerUser = createAsyncThunk(
+  'user/register',
+  async (payload, { rejectWithValue }) => {
+    try {
+      const data = await api('/auth/register', { method: 'POST', body: payload })
+      setToken(data.token)
+      return mapUser(data.user)
+    } catch (e) {
+      return rejectWithValue(e.message)
+    }
+  }
+)
+
+export const deleteCurrentUser = createAsyncThunk(
+  'user/deleteAccount',
+  async (_, { rejectWithValue }) => {
+    try {
+      await api('/auth/account', { method: 'DELETE' })
+      setToken(null)
+      return true
+    } catch (e) {
+      return rejectWithValue(e.message)
+    }
+  }
+)
 
 const initialState = {
-  usersByID: {
-    [demoId]: {
-      id: demoId,
-      name: 'Demo Student',
-      email: 'demo.student@lhr.nu.edu.pk',
-      phone: '+1 555 0100',
-      department: 'Computer Science',
-      password: 'demo123',
-      createdAt: demoCreated,
-    },
-  },
-  userIds: [demoId],
-  currentUserId: null,
+  profile: null,
   authError: null,
+  status: 'idle',
+  hydrated: false,
 }
 
 const usersSlice = createSlice({
@@ -51,85 +90,90 @@ const usersSlice = createSlice({
     clearAuthError: (state) => {
       state.authError = null
     },
-    registerUser(state, action) {
-      const { name, email, phone, department, password } = action.payload || {}
-
-      if (!name || !email || !phone || !department || !password) {
-        state.authError = 'Please fill in all fields'
-        return
-      }
-      if (!isUniversityEmail(email)) {
-        state.authError =
-          'Use your FAST Lahore student email (must end with @lhr.nu.edu.pk)'
-        return
-      }
-
-      const normalized = normalizeEmail(email)
-      const exists = state.userIds.some(
-        (id) => state.usersByID[id].email === normalized
-      )
-      if (exists) {
-        state.authError = 'An account with this email already exists'
-        return
-      }
-
-      const id = `user_${Math.random().toString(16).slice(2)}`
-      state.usersByID[id] = {
-        id,
-        name: String(name).trim(),
-        email: normalized,
-        phone: String(phone).trim(),
-        department: String(department).trim(),
-        password: String(password),
-        createdAt: new Date().toISOString(),
-      }
-      state.userIds.unshift(id)
-      state.currentUserId = id
+    logoutUser: (state) => {
+      setToken(null)
+      state.profile = null
       state.authError = null
+      state.status = 'idle'
     },
-    loginUser(state, action) {
-      const { email, password } = action.payload || {}
-      const normalized = normalizeEmail(email)
-      const user = state.userIds
-        .map((id) => state.usersByID[id])
-        .find((u) => u.email === normalized)
-      if (!user || user.password !== String(password || '')) {
-        state.authError = 'Invalid email or password'
-        return
-      }
-      state.currentUserId = user.id
-      state.authError = null
-    },
-    logoutUser(state) {
-      state.currentUserId = null
-      state.authError = null
-    },
-    deleteCurrentUser(state) {
-      const id = state.currentUserId
-      if (!id) return
-      delete state.usersByID[id]
-      state.userIds = state.userIds.filter((uid) => uid !== id)
-      state.currentUserId = null
-      state.authError = null
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(loadMe.pending, (state) => {
+        state.status = 'loading'
+        state.authError = null
+      })
+      .addCase(loadMe.fulfilled, (state, action) => {
+        state.status = 'idle'
+        state.profile = action.payload ? mapUser(action.payload) : null
+        state.hydrated = true
+      })
+      .addCase(loadMe.rejected, (state, action) => {
+        setToken(null)
+        state.profile = null
+        state.status = 'idle'
+        state.hydrated = true
+        if (action.payload) state.authError = action.payload
+      })
+      .addCase(loginUser.pending, (state) => {
+        state.status = 'loading'
+        state.authError = null
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.status = 'idle'
+        state.profile = action.payload
+        state.authError = null
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.status = 'idle'
+        state.authError = action.payload || 'Login failed'
+      })
+      .addCase(registerUser.pending, (state) => {
+        state.status = 'loading'
+        state.authError = null
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.status = 'idle'
+        state.profile = action.payload
+        state.authError = null
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.status = 'idle'
+        state.authError = action.payload || 'Registration failed'
+      })
+      .addCase(deleteCurrentUser.fulfilled, (state) => {
+        state.profile = null
+        state.status = 'idle'
+      })
+      .addCase(deleteCurrentUser.rejected, (state, action) => {
+        state.authError = action.payload || 'Could not delete account'
+      })
   },
 })
 
-export const {
-  registerUser,
-  loginUser,
-  logoutUser,
-  clearAuthError,
-  deleteCurrentUser,
-} = usersSlice.actions
+export const { clearAuthError, logoutUser } = usersSlice.actions
 
 export function selectUserProfile(state) {
-  const id = state.user.currentUserId
-  return id ? pickProfile(state.user.usersByID[id]) : null
+  return state.user.profile
 }
 
 export function selectAuthError(state) {
   return state.user.authError
 }
+
+export function selectAuthLoading(state) {
+  return state.user.status === 'loading'
+}
+
+export function selectAuthHydrated(state) {
+  return state.user.hydrated
+}
+
+export function selectIsAdmin(state) {
+  return state.user.profile?.role === 'admin'
+}
+
+/** @deprecated kept for rare legacy string checks */
+export const DEMO_USER_ID = 'user_demo'
 
 export default usersSlice.reducer

@@ -3,8 +3,11 @@ import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { BrowserRouter } from 'react-router-dom'
 import { store } from './store/configStore'
+import { loadMe } from './store/usersSlice'
 import App from './app.jsx'
 import './index.css'
+
+store.dispatch(loadMe())
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

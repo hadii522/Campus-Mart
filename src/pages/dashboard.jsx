@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { selectUserProfile } from '../store/usersSlice'
+import { selectUserProfile, selectIsAdmin } from '../store/usersSlice'
 import { selectItemsForSeller } from '../store/itemsSlice'
 
 export default function Dashboard() {
   const profile = useSelector(selectUserProfile)
+  const isAdmin = useSelector(selectIsAdmin)
   const myItems = useSelector((s) =>
     selectItemsForSeller(s, profile?.id)
   )
@@ -13,8 +14,8 @@ export default function Dashboard() {
     <div>
       <h1 className="pageTitle">Dashboard</h1>
       <p className="pageSubtitle">
-        Welcome back{profile?.name ? `, ${profile.name}` : ''}. Manage your
-        listings and browse the campus marketplace.
+        Welcome back{profile?.name ? `, ${profile.name}` : ''}. Listings and
+        auth are backed by MongoDB and JWT (Phase 2).
       </p>
 
       <div className="grid2">
@@ -34,18 +35,25 @@ export default function Dashboard() {
               <Link className="btn" to="/products">
                 Browse marketplace
               </Link>
+              {isAdmin ? (
+                <Link className="btn btnPrimary" to="/admin">
+                  Admin panel
+                </Link>
+              ) : null}
             </div>
           </div>
         </section>
 
         <section className="card">
           <div className="cardInner">
-            <h2 className="sectionTitle">Coming in later phases</h2>
+            <h2 className="sectionTitle">Phase 2 delivered</h2>
             <ul className="plainList">
-              <li>JWT authentication with Express API</li>
-              <li>MongoDB-backed listings and images</li>
-              <li>Messaging between buyers and sellers</li>
-              <li>Ratings, reviews, and admin moderation</li>
+              <li>Express REST API + MongoDB</li>
+              <li>JWT login / register / protected routes</li>
+              <li>Product CRUD + image upload (Multer)</li>
+              <li>Search & filters via API query params</li>
+              <li>Buyer → seller messages (REST)</li>
+              <li>Admin panel: users & listings overview</li>
             </ul>
           </div>
         </section>

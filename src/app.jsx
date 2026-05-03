@@ -9,6 +9,8 @@ import ProductList from './pages/productList.jsx'
 import ProductDetail from './pages/productDetail.jsx'
 import MyProducts from './pages/myProducts.jsx'
 import UserProfile from './pages/userProfile.jsx'
+import Admin from './pages/admin.jsx'
+import AdminRoute from './components/AdminRoute.jsx'
 import './app.css'
 
 export default function App() {
@@ -43,6 +45,14 @@ export default function App() {
             <ProtectedRoute>
               <UserProfile />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <Admin />
+            </AdminRoute>
           }
         />
       </Routes>

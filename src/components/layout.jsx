@@ -1,6 +1,6 @@
 import { NavLink, Link } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { selectUserProfile } from '../store/usersSlice'
+import { selectUserProfile, selectIsAdmin } from '../store/usersSlice'
 
 function navItemClass({ isActive }) {
   return `navItem${isActive ? ' navItemActive' : ''}`
@@ -34,6 +34,7 @@ function firstNameFromName(name) {
 
 export default function Layout({ children }) {
   const profile = useSelector(selectUserProfile)
+  const isAdmin = useSelector(selectIsAdmin)
 
   return (
     <div className="appShell">
@@ -88,6 +89,11 @@ export default function Layout({ children }) {
                   My listings
                 </NavLink>
               ) : null}
+              {isAdmin ? (
+                <NavLink to="/admin" className={navItemClass}>
+                  Admin
+                </NavLink>
+              ) : null}
             </div>
 
             <div className="navActions">
@@ -133,8 +139,8 @@ export default function Layout({ children }) {
             </p>
           </div>
           <p className="footerMeta">
-            BDS-8B · Web Engineering (Phase 1). Emaan Munib (22L-7509) · Aizaz
-            Haider Goraya (22L-8371).
+            BDS-8B · MERN (Phase 2: Express, MongoDB, JWT). Emaan Munib
+            (22L-7509) · Aizaz Haider Goraya (22L-8371).
           </p>
         </div>
       </footer>
